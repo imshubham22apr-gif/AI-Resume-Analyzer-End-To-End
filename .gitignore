@@ -1,0 +1,20 @@
+# Node
+node_modules/
+.next/
+out/
+build/
+.env*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.venv/
+*.sqlite3
+backend/uploaded_resumes/
+
+# OS
+.DS_Store
+Thumbs.db
