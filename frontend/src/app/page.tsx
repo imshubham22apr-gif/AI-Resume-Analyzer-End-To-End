@@ -11,6 +11,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
 
+  const [jobDescription, setJobDescription] = useState("");
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
   };
@@ -38,6 +40,7 @@ export default function Home() {
     setLoading(true);
     const formData = new FormData();
     formData.append("resume", file);
+    formData.append("job_description", jobDescription);
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -47,10 +50,9 @@ export default function Home() {
         },
       });
       setResult(response.data);
-      // Auto-scroll to results logic could go here, but React state shift is instant enough for now.
     } catch (error) {
       console.error("Error analyzing resume", error);
-      alert("Failed to analyze resume. Make sure the backend is running.");
+      alert("Failed to analyze resume. Make sure the backend is running and Ollama is started.");
     } finally {
       setLoading(false);
     }
@@ -88,7 +90,7 @@ export default function Home() {
                   Unlock your true <br/> professional trajectory.
                 </h1>
                 <p className="text-lg md:text-xl text-white/60 max-w-3xl leading-relaxed">
-                  Hi, my name is Aashish. Welcome to AI Resume Analyzer! I have built this to help my friends and fellow juniors make their resumes align with their goals and target job roles. I process your unstructured resume data into structured insights. Using advanced NLP, I predict your ideal role, score your profile, and map the skills you need to bridge the gap.
+                  Hi, my name is Aashish. Welcome to AI Resume Analyzer! I have built this to help my friends and fellow juniors make their resumes align with their goals and target job roles. I process your unstructured resume data into structured insights using local LLMs.
                 </p>
                 <div className="pt-8">
                   <button 
@@ -110,41 +112,63 @@ export default function Home() {
                 whileInView="visible"
                 viewport={{ once: true, amount: 0.3 }}
                 variants={chapterVariants}
-                className="space-y-12"
+                className="space-y-8"
               >
                 <h2 className="text-4xl md:text-5xl font-medium tracking-tight">Provide the raw material.</h2>
                 
-                <div 
-                  onDragOver={handleDragOver}
-                  onDrop={handleDrop}
-                  onClick={() => document.getElementById("file-upload")?.click()}
-                  className="w-full h-80 border border-white/10 bg-white/[0.02] backdrop-blur-md flex flex-col items-center justify-center cursor-pointer hover:bg-white/[0.05] hover:border-emerald-500/50 transition-all duration-500 group"
-                >
-                  {file ? (
-                    <div className="flex flex-col items-center space-y-4">
-                      <CheckCircle className="w-12 h-12 text-emerald-400" />
-                      <p className="font-[family-name:var(--font-geist-mono)] text-lg">{file.name}</p>
-                      <p className="text-sm text-white/40">{(file.size / 1024 / 1024).toFixed(2)} MB ALLOCATED</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  
+                  {/* Job Description Input */}
+                  <div className="flex flex-col space-y-4">
+                    <label className="font-[family-name:var(--font-geist-mono)] text-xs tracking-widest text-emerald-400 uppercase">
+                      Target Job Description
+                    </label>
+                    <textarea 
+                      value={jobDescription}
+                      onChange={(e) => setJobDescription(e.target.value)}
+                      placeholder="Paste the target role description here (Optional)..."
+                      className="w-full h-64 bg-white/[0.02] backdrop-blur-md border border-white/10 text-white/80 p-4 focus:outline-none focus:border-emerald-500/50 transition-colors custom-scrollbar resize-none"
+                    />
+                  </div>
+
+                  {/* Resume Upload Box */}
+                  <div className="flex flex-col space-y-4">
+                    <label className="font-[family-name:var(--font-geist-mono)] text-xs tracking-widest text-emerald-400 uppercase">
+                      Candidate Resume (PDF)
+                    </label>
+                    <div 
+                      onDragOver={handleDragOver}
+                      onDrop={handleDrop}
+                      onClick={() => document.getElementById("file-upload")?.click()}
+                      className="w-full h-64 border border-white/10 bg-white/[0.02] backdrop-blur-md flex flex-col items-center justify-center cursor-pointer hover:bg-white/[0.05] hover:border-emerald-500/50 transition-all duration-500 group"
+                    >
+                      {file ? (
+                        <div className="flex flex-col items-center space-y-4">
+                          <CheckCircle className="w-12 h-12 text-emerald-400" />
+                          <p className="font-[family-name:var(--font-geist-mono)] text-lg">{file.name}</p>
+                          <p className="text-sm text-white/40">{(file.size / 1024 / 1024).toFixed(2)} MB ALLOCATED</p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center space-y-6 text-white/50 group-hover:text-white/80 transition-colors">
+                          <UploadCloud className="w-12 h-12" />
+                          <div className="text-center font-[family-name:var(--font-geist-mono)]">
+                            <p className="text-sm uppercase tracking-widest">Select or drop PDF file</p>
+                            <p className="text-xs mt-2 opacity-50">SECURE TRANSFER</p>
+                          </div>
+                        </div>
+                      )}
+                      <input
+                        id="file-upload"
+                        type="file"
+                        accept="application/pdf"
+                        className="hidden"
+                        onChange={handleFileChange}
+                      />
                     </div>
-                  ) : (
-                    <div className="flex flex-col items-center space-y-6 text-white/50 group-hover:text-white/80 transition-colors">
-                      <UploadCloud className="w-12 h-12" />
-                      <div className="text-center font-[family-name:var(--font-geist-mono)]">
-                        <p className="text-sm uppercase tracking-widest">Select or drop PDF file</p>
-                        <p className="text-xs mt-2 opacity-50">INITIALIZING SECURE TRANSFER</p>
-                      </div>
-                    </div>
-                  )}
-                  <input
-                    id="file-upload"
-                    type="file"
-                    accept="application/pdf"
-                    className="hidden"
-                    onChange={handleFileChange}
-                  />
+                  </div>
                 </div>
 
-                <div className="flex justify-end">
+                <div className="flex justify-end pt-4">
                   <button
                     onClick={handleSubmit}
                     disabled={!file || loading}
@@ -153,7 +177,7 @@ export default function Home() {
                     {loading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Processing...
+                        AI is analyzing...
                       </>
                     ) : (
                       <>
@@ -179,12 +203,12 @@ export default function Home() {
                 <div>
                   <div className="flex flex-col font-[family-name:var(--font-geist-mono)] text-xs tracking-widest text-emerald-400 mb-6">
                     <span>//02</span>
-                    <span>ANALYSIS COMPLETE / DATA EXTRACTED</span>
+                    <span>AI EVALUATION COMPLETE</span>
                   </div>
                   <h2 className="text-4xl md:text-6xl font-medium tracking-tight">System output.</h2>
                 </div>
                 <button 
-                  onClick={() => {setResult(null); setFile(null);}}
+                  onClick={() => {setResult(null); setFile(null); setJobDescription("");}}
                   className="font-[family-name:var(--font-geist-mono)] text-xs uppercase tracking-widest text-white/50 hover:text-white transition-colors"
                 >
                   [ RESTART PROCESS ]
@@ -199,16 +223,14 @@ export default function Home() {
                     <div>
                       <span className="font-[family-name:var(--font-geist-mono)] text-xs text-white/50 uppercase tracking-widest">Candidate Matrix</span>
                       <div className="mt-4 space-y-2 text-lg">
-                        <p>{result.name || "UNIDENTIFIED"}</p>
-                        <p className="text-white/70 text-sm break-all">{result.email || "NO SIGNAL"}</p>
-                        <p className="text-white/70 text-sm">{result.mobile_number || "NO SIGNAL"}</p>
+                        <p>{result.candidate_name || "UNIDENTIFIED"}</p>
                       </div>
                     </div>
                     
                     <div className="border-t border-white/10 pt-8">
-                      <span className="font-[family-name:var(--font-geist-mono)] text-xs text-white/50 uppercase tracking-widest">Match Score</span>
+                      <span className="font-[family-name:var(--font-geist-mono)] text-xs text-white/50 uppercase tracking-widest">JD Match Score</span>
                       <div className="mt-4 flex items-baseline gap-2">
-                        <span className="text-6xl font-medium text-emerald-400">{result.resume_score || 0}</span>
+                        <span className="text-6xl font-medium text-emerald-400">{result.match_score || 0}</span>
                         <span className="text-white/40 font-[family-name:var(--font-geist-mono)]">/100</span>
                       </div>
                     </div>
@@ -221,72 +243,42 @@ export default function Home() {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div>
-                        <span className="font-[family-name:var(--font-geist-mono)] text-xs text-white/50 uppercase tracking-widest">Predicted Role</span>
-                        <p className="mt-4 text-2xl md:text-3xl font-medium text-emerald-400">{result.predicted_role || "Unknown"}</p>
+                        <span className="font-[family-name:var(--font-geist-mono)] text-xs text-white/50 uppercase tracking-widest">AI Recommendation</span>
+                        <p className={`mt-4 text-2xl md:text-3xl font-medium ${result.recommendation?.toUpperCase() === 'INTERVIEW' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                          {result.recommendation || "UNKNOWN"}
+                        </p>
                       </div>
                       <div>
-                        <span className="font-[family-name:var(--font-geist-mono)] text-xs text-white/50 uppercase tracking-widest">Experience Level</span>
-                        <p className="mt-4 text-2xl md:text-3xl font-medium">{result.experience_level || "Unknown"}</p>
+                        <span className="font-[family-name:var(--font-geist-mono)] text-xs text-white/50 uppercase tracking-widest">AI Reasoning</span>
+                        <p className="mt-4 text-sm text-white/80 leading-relaxed">{result.reasoning || "No reasoning provided."}</p>
                       </div>
                     </div>
 
-                    <div className="border-t border-white/10 pt-8">
-                      <span className="font-[family-name:var(--font-geist-mono)] text-xs text-white/50 uppercase tracking-widest">Identified Nodes (Skills)</span>
-                      <div className="mt-6 flex flex-wrap gap-2">
-                        {result.skills && result.skills.length > 0 ? (
-                          result.skills.map((skill: string, idx: number) => (
-                            <span key={idx} className="font-[family-name:var(--font-geist-mono)] text-xs px-3 py-1.5 border border-white/20 text-white/80 uppercase">
-                              {skill}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-white/50 text-sm">NO NODES DETECTED</span>
-                        )}
+                    {/* New Actionable Enhancements from Llama3 */}
+                    <div className="border-t border-white/10 pt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div>
+                        <span className="font-[family-name:var(--font-geist-mono)] text-xs text-emerald-400 uppercase tracking-widest">Key Strengths</span>
+                        <ul className="mt-4 space-y-3">
+                          {result.key_strengths?.map((item: string, idx: number) => (
+                            <li key={idx} className="text-sm text-white/80 flex items-start gap-2">
+                              <span className="text-emerald-400 mt-0.5">▹</span> {item}
+                            </li>
+                          ))}
+                          {(!result.key_strengths || result.key_strengths.length === 0) && <li className="text-sm text-white/40">NO SIGNIFICANT STRENGTHS DETECTED</li>}
+                        </ul>
+                      </div>
+                      <div>
+                        <span className="font-[family-name:var(--font-geist-mono)] text-xs text-amber-400 uppercase tracking-widest">Missing Critical Skills</span>
+                        <ul className="mt-4 space-y-3">
+                          {result.missing_critical_skills?.map((item: string, idx: number) => (
+                            <li key={idx} className="text-sm text-white/80 flex items-start gap-2">
+                              <span className="text-amber-400 mt-0.5">▹</span> {item}
+                            </li>
+                          ))}
+                          {(!result.missing_critical_skills || result.missing_critical_skills.length === 0) && <li className="text-sm text-white/40">NO MISSING SKILLS DETECTED</li>}
+                        </ul>
                       </div>
                     </div>
-
-                    <div className="border-t border-emerald-500/20 pt-8">
-                      <span className="font-[family-name:var(--font-geist-mono)] text-xs text-emerald-400/80 uppercase tracking-widest">Optimization Pathway (Missing Skills)</span>
-                      <div className="mt-6 flex flex-wrap gap-2">
-                        {result.recommended_skills && result.recommended_skills.length > 0 ? (
-                          result.recommended_skills.map((skill: string, idx: number) => (
-                            <span key={idx} className="font-[family-name:var(--font-geist-mono)] text-xs px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 uppercase">
-                              + {skill}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-white/50 text-sm">SYSTEM OPTIMIZED. NO NEW PATHWAYS REQUIRED.</span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* NEW: Actionable Enhancements from Backend */}
-                    {(result.strengths?.length > 0 || result.improvements?.length > 0) && (
-                      <div className="border-t border-white/10 pt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div>
-                          <span className="font-[family-name:var(--font-geist-mono)] text-xs text-emerald-400 uppercase tracking-widest">Core Strengths</span>
-                          <ul className="mt-4 space-y-3">
-                            {result.strengths?.map((item: string, idx: number) => (
-                              <li key={idx} className="text-sm text-white/80 flex items-start gap-2">
-                                <span className="text-emerald-400 mt-0.5">▹</span> {item}
-                              </li>
-                            ))}
-                            {!result.strengths?.length && <li className="text-sm text-white/40">NO SIGNIFICANT STRENGTHS DETECTED</li>}
-                          </ul>
-                        </div>
-                        <div>
-                          <span className="font-[family-name:var(--font-geist-mono)] text-xs text-amber-400 uppercase tracking-widest">Areas for Improvement</span>
-                          <ul className="mt-4 space-y-3">
-                            {result.improvements?.map((item: string, idx: number) => (
-                              <li key={idx} className="text-sm text-white/80 flex items-start gap-2">
-                                <span className="text-amber-400 mt-0.5">▹</span> {item}
-                              </li>
-                            ))}
-                            {!result.improvements?.length && <li className="text-sm text-white/40">NO SIGNIFICANT DEFICIENCIES DETECTED</li>}
-                          </ul>
-                        </div>
-                      </div>
-                    )}
 
                   </div>
                 </div>

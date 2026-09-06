@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from ai_parser import analyze_resume
@@ -29,7 +29,11 @@ def read_root():
     return {"message": "Welcome to AI Resume Analyzer API"}
 
 @app.post("/api/analyze")
-async def analyze_endpoint(resume: UploadFile = File(...), db: Session = Depends(get_db)):
+async def analyze_endpoint(
+    resume: UploadFile = File(...), 
+    job_description: str = Form(""),
+    db: Session = Depends(get_db)
+):
     if not resume.filename.endswith('.pdf'):
         raise HTTPException(status_code=400, detail="Only PDF files are supported.")
         
@@ -39,19 +43,19 @@ async def analyze_endpoint(resume: UploadFile = File(...), db: Session = Depends
         shutil.copyfileobj(resume.file, buffer)
         
     try:
-        # Analyze the saved PDF
-        result = analyze_resume(file_path)
+        # Analyze the saved PDF with Job Description
+        result = analyze_resume(file_path, job_description)
         
-        # Save to DB
+        # Save to DB (mapping new Llama3 JSON format to old DB schema to prevent migration errors)
         db_resume = models.ResumeData(
-            name=result.get("name", ""),
-            email=result.get("email", ""),
-            mobile_number=result.get("mobile_number", ""),
-            skills=json.dumps(result.get("skills", [])),
-            predicted_role=result.get("predicted_role", ""),
-            resume_score=result.get("resume_score", 0),
-            experience_level=result.get("experience_level", ""),
-            no_of_pages=result.get("no_of_pages", 0)
+            name=result.get("candidate_name", ""),
+            email="",
+            mobile_number="",
+            skills=json.dumps(result.get("key_strengths", [])),
+            predicted_role=result.get("recommendation", ""),
+            resume_score=float(result.get("match_score", 0)),
+            experience_level="Reasoning: " + str(result.get("reasoning", ""))[:200],
+            no_of_pages=1
         )
         db.add(db_resume)
         db.commit()

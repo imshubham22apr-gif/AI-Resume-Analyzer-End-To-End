@@ -2,5 +2,5 @@ fastapi
 uvicorn
 sqlalchemy
 python-multipart
-pdfminer.six
-spacy
+pymupdf
+ollama
