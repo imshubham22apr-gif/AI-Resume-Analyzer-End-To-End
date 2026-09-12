@@ -4,3 +4,4 @@ sqlalchemy
 python-multipart
 pymupdf
 ollama
+scikit-learn

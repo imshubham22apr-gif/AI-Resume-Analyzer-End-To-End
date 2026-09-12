@@ -14,6 +14,8 @@ env/
 .venv/
 *.sqlite3
 backend/uploaded_resumes/
+backend/test_artifacts/
+*.db
 
 # OS
 .DS_Store

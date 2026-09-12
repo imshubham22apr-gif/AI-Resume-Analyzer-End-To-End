@@ -55,7 +55,7 @@ async def analyze_endpoint(
             predicted_role=result.get("recommendation", ""),
             resume_score=float(result.get("match_score", 0)),
             experience_level="Reasoning: " + str(result.get("reasoning", ""))[:200],
-            no_of_pages=1
+            no_of_pages=len(result.get("layout_diagnostics", [])) or 1
         )
         db.add(db_resume)
         db.commit()
